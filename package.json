@@ -1,0 +1,43 @@
+{
+  "name": "airportapp",
+  "version": "0.0.1",
+  "description": "",
+  "devDependencies": {
+    "@types/connect-redis": "^0.0.17",
+    "@types/cors": "^2.8.12",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.13",
+    "@types/express-session": "^1.17.4",
+    "@types/graphql": "^14.5.0",
+    "@types/ioredis": "^4.28.1",
+    "@types/node": "^8.0.29",
+    "@types/redis": "^2.8.32",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "3.3.3333"
+  },
+  "dependencies": {
+    "apollo-server-express": "^3.5.0",
+    "argon2": "^0.28.2",
+    "class-validator": "^0.13.1",
+    "connect-redis": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "graphql": "^15.5.3",
+    "ioredis": "^4.28.0",
+    "pg": "^8.4.0",
+    "redis": "^3.1.2",
+    "reflect-metadata": "^0.1.10",
+    "subscriptions-transport-ws": "^0.11.0",
+    "type-graphql": "^1.1.1",
+    "typeorm": "0.2.40"
+  },
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "build": "rimraf ./dist && tsc",
+    "watch": "tsc -w",
+    "start": "npm run build && node ./dist/index.js",
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
+  }
+}
