@@ -34,4 +34,7 @@ export class ReservationInput {
 
   @Field()
   amount: number;
+
+  @Field()
+  destiny: string;
 }
