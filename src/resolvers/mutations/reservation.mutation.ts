@@ -1,5 +1,5 @@
 import {Arg, Mutation, Resolver} from "type-graphql";
-import {getRepository} from "typeorm";
+import {getConnection, getRepository} from "typeorm";
 
 import {Reservate} from "../../entity/reservate.entity";
 import {ReservationInput} from "../../inputs/reservation.input";
@@ -11,7 +11,7 @@ export class ReservationMutation {
   @Mutation(() => ReservationResponse, {nullable: true})
   async createReservation(
     @Arg("options", () => ReservationInput) options: ReservationInput
-  ) {
+  ): Promise<ReservationResponse> {
     await Reservate.create({...options}).save();
 
     const reservate = await getRepository(Reservate)
@@ -22,20 +22,32 @@ export class ReservationMutation {
       .andWhere(`flight.flight_id = ${options.flight.flight_id}`)
       .getOne();
 
-    const flight = await getRepository(Flight)
+    let flight;
+
+    flight = await getRepository(Flight)
       .createQueryBuilder("flight")
       .where(`flight.flight_id = ${options.flight.flight_id}`)
-      .getMany();
+      .getOne();
     console.log(flight);
 
     //working on it
     if (reservate) {
-      await Flight.update(
-        {flight_id: options.flight.flight_id},
-        {
-          seats: (options.flight.seats = 50),
-        }
-      );
+      if (flight?.avalible_seats === 0) {
+        return {
+          errors: [
+            {
+              path: "flight.avalible_seats",
+              message: "Ya no quedan asientos disponibles",
+            },
+          ],
+        };
+      }
+
+      await getConnection().transaction(async tm => {
+        await tm.query(
+          `UPDATE flight SET avalible_seats = COALESCE(avalible_seats, 0) - ${options.amount} WHERE flight_id = ${options.flight.flight_id}`
+        );
+      });
     }
 
     return {reservate};
