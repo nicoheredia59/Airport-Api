@@ -6,6 +6,7 @@ import {
   PrimaryColumn,
   CreateDateColumn,
   PrimaryGeneratedColumn,
+  Column,
 } from "typeorm";
 import {Flight} from "./flight.entity";
 import {User} from "./user.entity";
@@ -28,6 +29,18 @@ export class Reservate extends BaseEntity {
   @Field(() => Date)
   @CreateDateColumn({type: "date"})
   departure_date: Date;
+
+  @Field()
+  @Column()
+  amount: number;
+
+  @Field()
+  @Column()
+  destiny: string;
+
+  @Field()
+  @Column({nullable: true})
+  unit_price: number;
 
   @Field(() => User)
   @ManyToOne(() => User, u => u.reservate, {onDelete: "CASCADE"})
