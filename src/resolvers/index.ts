@@ -5,6 +5,7 @@ import {ReservationMutation} from "./mutations/reservation.mutation";
 import {UserMutation} from "./mutations/user.mutation";
 import {FlightQuery} from "./querys/flight.query";
 import {HelloResolver} from "./querys/hello";
+import {ReservationQuery} from "./querys/reservation.query";
 import {UserQuery} from "./querys/user.query";
 
 const resolverArr = [
@@ -15,6 +16,7 @@ const resolverArr = [
   FlightMutation,
   FlightQuery,
   ReservationMutation,
+  ReservationQuery,
 ] as const;
 
 export const schema_index = buildSchema({
