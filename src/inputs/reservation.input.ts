@@ -12,7 +12,7 @@ class Flight_reservation {
   flight_id: number;
 
   @Field({nullable: true})
-  seats: number;
+  avalible_seats: number;
 }
 
 @InputType()
@@ -31,4 +31,7 @@ export class ReservationInput {
 
   @Field(() => Flight_reservation)
   flight: Flight_reservation;
+
+  @Field()
+  amount: number;
 }
