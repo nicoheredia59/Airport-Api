@@ -10,7 +10,12 @@ export class FlightMutation {
   async createFlight(
     @Arg("options", () => FlightInput) options: FlightInput
   ): Promise<FlighResponse> {
-    const flight = await Flight.create({...options}).save();
+    const flight = await Flight.create({
+      status: options.status,
+      price: options.price,
+      seats: options.seats,
+      avalible_seats: options.seats,
+    }).save();
 
     return {flight};
   }
