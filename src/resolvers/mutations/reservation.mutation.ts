@@ -6,6 +6,8 @@ import {ReservationInput} from "../../inputs/reservation.input";
 import {ReservationResponse} from "../../responses/reservation.response";
 import {Flight} from "../../entity/flight.entity";
 import {genToken} from "../../utils/genToken";
+import {stripe} from "../../stripe/stripe";
+import {User} from "../../entity/user.entity";
 
 @Resolver()
 export class ReservationMutation {
@@ -16,12 +18,15 @@ export class ReservationMutation {
     const token = genToken(10);
     let flight;
 
+    const user = await getRepository(User)
+      .createQueryBuilder("user")
+      .where(`user.ci = ${options.user.ci}`)
+      .getOne();
+
     flight = await getRepository(Flight)
       .createQueryBuilder("flight")
       .where(`flight.flight_id = ${options.flight.flight_id}`)
       .getOne();
-
-    console.log((flight?.price as number) * options.amount);
 
     await Reservate.create({
       reservation_token: options.reservation_token + token,
@@ -63,8 +68,28 @@ export class ReservationMutation {
         );
       });
     }
+    const total_price = (flight?.price as number) * options.amount;
 
-    console.log(reservate);
+    const customer = await stripe.customers.create({
+      email: user?.email,
+      name: user?.name,
+    });
+
+    console.log(customer);
+
+    const a = await stripe.charges.create(
+      {
+        amount: total_price,
+        currency: "usd",
+        source: "tok_visa",
+        description: "Pago Tickets",
+      },
+      {
+        idempotencyKey: token,
+      }
+    );
+
+    console.log(a);
 
     return {reservate};
   }
