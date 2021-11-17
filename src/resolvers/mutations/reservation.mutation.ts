@@ -5,6 +5,7 @@ import {Reservate} from "../../entity/reservate.entity";
 import {ReservationInput} from "../../inputs/reservation.input";
 import {ReservationResponse} from "../../responses/reservation.response";
 import {Flight} from "../../entity/flight.entity";
+import {genToken} from "../../utils/genToken";
 
 @Resolver()
 export class ReservationMutation {
@@ -12,7 +13,26 @@ export class ReservationMutation {
   async createReservation(
     @Arg("options", () => ReservationInput) options: ReservationInput
   ): Promise<ReservationResponse> {
-    await Reservate.create({...options}).save();
+    const token = genToken(10);
+    let flight;
+
+    flight = await getRepository(Flight)
+      .createQueryBuilder("flight")
+      .where(`flight.flight_id = ${options.flight.flight_id}`)
+      .getOne();
+
+    console.log((flight?.price as number) * options.amount);
+
+    await Reservate.create({
+      reservation_token: options.reservation_token + token,
+      expedition_date: options.expedition_date,
+      departure_date: options.departure_date,
+      amount: options.amount,
+      destiny: options.destiny,
+      unit_price: (flight?.price as number) * options.amount,
+      user: options.user,
+      flight: options.flight,
+    }).save();
 
     const reservate = await getRepository(Reservate)
       .createQueryBuilder("reservate")
@@ -22,22 +42,16 @@ export class ReservationMutation {
       .andWhere(`flight.flight_id = ${options.flight.flight_id}`)
       .getOne();
 
-    let flight;
-
-    flight = await getRepository(Flight)
-      .createQueryBuilder("flight")
-      .where(`flight.flight_id = ${options.flight.flight_id}`)
-      .getOne();
-    console.log(flight);
+    const lessThanCero = (flight?.avalible_seats as number) <= 0;
 
     //working on it
     if (reservate) {
-      if (flight?.avalible_seats === 0) {
+      if (flight?.avalible_seats === 0 || lessThanCero) {
         return {
           errors: [
             {
               path: "flight.avalible_seats",
-              message: "Ya no quedan asientos disponibles",
+              message: "Ya no quedan asientos disponibles.",
             },
           ],
         };
@@ -49,6 +63,8 @@ export class ReservationMutation {
         );
       });
     }
+
+    console.log(reservate);
 
     return {reservate};
   }
