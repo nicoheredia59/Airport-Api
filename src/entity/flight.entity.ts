@@ -35,6 +35,10 @@ export class Flight extends BaseEntity {
   @Column()
   seats: number;
 
+  @Field()
+  @Column()
+  avalible_seats: number;
+
   @OneToMany(() => Have, h => h.flight)
   have: Promise<Have>;
 

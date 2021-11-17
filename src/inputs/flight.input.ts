@@ -14,12 +14,12 @@ export class FlightInput {
 
 @InputType()
 export class UpdateFlight {
-  @Field()
+  @Field({nullable: true})
   status: string;
 
-  @Field()
+  @Field({nullable: true})
   price: number;
 
-  @Field()
+  @Field({nullable: true})
   seats: number;
 }
