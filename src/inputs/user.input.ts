@@ -29,3 +29,12 @@ export class UpdateUser {
   @Field({nullable: true})
   email: string;
 }
+
+@InputType()
+export class EmailPassword {
+  @Field()
+  email: string;
+
+  @Field()
+  password: string;
+}
