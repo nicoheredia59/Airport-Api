@@ -10,12 +10,18 @@ export class FlightMutation {
   async createFlight(
     @Arg("options", () => FlightInput) options: FlightInput
   ): Promise<FlighResponse> {
-    const flight = await Flight.create({
+    await Flight.create({
       status: options.status,
       price: options.price,
       seats: options.seats,
       avalible_seats: options.seats,
+      agency: options.agency,
     }).save();
+
+    const flight = await getRepository(Flight)
+      .createQueryBuilder("flight")
+      .innerJoinAndSelect("flight.agency", "agency")
+      .getOne();
 
     return {flight};
   }
