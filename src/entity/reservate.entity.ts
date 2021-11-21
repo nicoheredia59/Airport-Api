@@ -27,7 +27,7 @@ export class Reservate extends BaseEntity {
   expedition_date: Date;
 
   @Field(() => Date)
-  @CreateDateColumn({type: "date"})
+  @CreateDateColumn()
   departure_date: Date;
 
   @Field()
