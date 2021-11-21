@@ -1,6 +1,12 @@
 import {Field, InputType} from "type-graphql";
 
 @InputType()
+class Agency_id {
+  @Field()
+  agency_id: number;
+}
+
+@InputType()
 export class FlightInput {
   @Field()
   status: string;
@@ -10,6 +16,9 @@ export class FlightInput {
 
   @Field()
   seats: number;
+
+  @Field(() => Agency_id)
+  agency: Agency_id;
 }
 
 @InputType()
@@ -22,4 +31,7 @@ export class UpdateFlight {
 
   @Field({nullable: true})
   seats: number;
+
+  @Field(() => Agency_id, {nullable: true})
+  agency: Agency_id;
 }
