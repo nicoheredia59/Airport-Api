@@ -1,12 +1,16 @@
 import argon2 from "argon2";
-import {Arg, Int, Mutation, Resolver} from "type-graphql";
+
+import {stripe} from "../../stripe/stripe";
+import {Arg, Ctx, Int, Mutation, Resolver} from "type-graphql";
 import {getRepository} from "typeorm";
 import {User} from "../../entity/user.entity";
-import {UpdateUser, UserInput} from "../../inputs/user.input";
+import {EmailPassword, UpdateUser, UserInput} from "../../inputs/user.input";
 import {UserResponse} from "../../responses/user.response";
+import {MyContext} from "../../types/MyContext";
 
 @Resolver()
 export class UserMutation {
+  //register
   @Mutation(() => UserResponse)
   async createUser(
     @Arg("options", () => UserInput) options: UserInput
@@ -26,7 +30,12 @@ export class UserMutation {
       .where(`user.ci = ${options.ci} `)
       .getOne();
 
-    if (!user) {
+    await stripe.customers.create({
+      email: user?.email,
+      name: user?.email,
+    });
+
+    if (user) {
       return {
         errors: [
           {
@@ -40,6 +49,7 @@ export class UserMutation {
     return {user};
   }
 
+  //update
   @Mutation(() => UserResponse, {nullable: true})
   async updateUser(
     @Arg("ci", () => Int) ci: number,
@@ -55,6 +65,7 @@ export class UserMutation {
     return {user};
   }
 
+  //delete
   @Mutation(() => Boolean, {nullable: true})
   async deleteUser(@Arg("ci", () => Int) ci: number) {
     const user = await User.delete(ci);
@@ -63,5 +74,63 @@ export class UserMutation {
     }
 
     return true;
+  }
+
+  //login
+  @Mutation(() => UserResponse, {nullable: true})
+  async login(
+    @Arg("options", () => EmailPassword) options: EmailPassword,
+    @Ctx() {req}: MyContext
+  ): Promise<UserResponse> {
+    const user = await getRepository(User)
+      .createQueryBuilder("user")
+      .where(`user.email = '${options.email}'`)
+      .getOne();
+
+    if (!user) {
+      return {
+        errors: [
+          {
+            path: "ci",
+            message: "Este correo no exisite porfavor ingresa uno valido.",
+          },
+        ],
+      };
+    }
+
+    const valid = await argon2.verify(user.password, options.password);
+
+    if (!valid) {
+      return {
+        errors: [
+          {
+            path: "password",
+            message: "Contraseña incorrecta.",
+          },
+        ],
+      };
+    }
+
+    console.log(user);
+
+    req.session.email = user.email;
+
+    return {user};
+  }
+
+  //logout
+  @Mutation(() => Boolean)
+  logout(@Ctx() {req, res}: MyContext): Promise<unknown> {
+    return new Promise(resolve =>
+      req.session.destroy(err => {
+        res.clearCookie("qid");
+        if (err) {
+          console.log(err);
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      })
+    );
   }
 }
