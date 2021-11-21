@@ -1,6 +1,8 @@
-import {Reservate} from "../../entity/reservate.entity";
-import {Arg, Query, Resolver} from "type-graphql";
+import {Arg, Ctx, Query, Resolver} from "type-graphql";
 import {getRepository} from "typeorm";
+
+import {MyContext} from "../../types/MyContext";
+import {Reservate} from "../../entity/reservate.entity";
 
 @Resolver()
 export class ReservationQuery {
@@ -10,6 +12,7 @@ export class ReservationQuery {
       .createQueryBuilder("reservate")
       .innerJoinAndSelect("reservate.user", "user")
       .innerJoinAndSelect("reservate.flight", "flight")
+      .innerJoinAndSelect("flight.agency", "agency")
       .getMany();
 
     return reservations;
@@ -23,8 +26,22 @@ export class ReservationQuery {
       .createQueryBuilder("reservate")
       .innerJoinAndSelect("reservate.user", "user")
       .innerJoinAndSelect("reservate.flight", "flight")
+      .innerJoinAndSelect("flight.agency", "agency")
       .where(`reservate.reservation_token = '${reservation_token}'`)
       .getOne();
+
+    return reservations;
+  }
+
+  @Query(() => [Reservate], {nullable: true})
+  async getMyReservations(@Ctx() {req}: MyContext) {
+    const reservations = await getRepository(Reservate)
+      .createQueryBuilder("reservate")
+      .innerJoinAndSelect("reservate.user", "user")
+      .innerJoinAndSelect("reservate.flight", "flight")
+      .innerJoinAndSelect("flight.agency", "agency")
+      .where(`user.email = '${req.session.email}'`)
+      .getMany();
 
     return reservations;
   }
