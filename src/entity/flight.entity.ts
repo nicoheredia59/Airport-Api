@@ -3,9 +3,11 @@ import {
   BaseEntity,
   Column,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import {Agency} from "./agency.entity";
 import {Have} from "./have.entity";
 import {Reservate} from "./reservate.entity";
 
@@ -38,6 +40,10 @@ export class Flight extends BaseEntity {
   @Field()
   @Column()
   avalible_seats: number;
+
+  @Field(() => Agency, {nullable: true})
+  @ManyToOne(() => Agency, {nullable: true})
+  agency: Agency;
 
   @OneToMany(() => Have, h => h.flight)
   have: Promise<Have>;
