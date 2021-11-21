@@ -8,6 +8,8 @@ import cors from "cors";
 import redis from "redis";
 import {SubscriptionServer} from "subscriptions-transport-ws";
 import {subscribe, execute} from "graphql";
+import connectRedis from "connect-redis";
+import session from "express-session";
 
 const main = async () => {
   await createConnection();
@@ -15,6 +17,15 @@ const main = async () => {
   const app = express();
 
   const httpServer = http.createServer(app);
+
+  app.set("trust proxy", true);
+
+  const RedisStore = connectRedis(session);
+  const redisClient = redis.createClient();
+
+  redisClient.on("error", function (error) {
+    console.error(error);
+  });
 
   app.use(
     cors({
@@ -24,7 +35,27 @@ const main = async () => {
         "http://localhost:3000",
       ],
       credentials: true,
+
       //allowedHeaders: ["x-forwarded-proto", "https"],
+    })
+  );
+
+  app.use(
+    session({
+      name: "qid",
+      store: new RedisStore({
+        client: redisClient,
+        disableTouch: true,
+      }),
+      cookie: {
+        maxAge: 24 * 60 * 60 * 60,
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      },
+      saveUninitialized: false,
+      secret: "qiwroasdjlasddde",
+      resave: false,
     })
   );
 
@@ -41,7 +72,7 @@ const main = async () => {
 
   await apollo_server.start();
 
-  apollo_server.applyMiddleware({app, cors: false});
+  apollo_server.applyMiddleware({app, cors: false, path: "/graphql"});
 
   SubscriptionServer.create(
     {schema, subscribe, execute},
